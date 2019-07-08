@@ -1,7 +1,8 @@
 {
   "name": "ionic-angular-course",
   "integrations": {
-    "capacitor": {}
+    "capacitor": {},
+    "cordova": {}
   },
   "type": "angular"
 }
