@@ -1,4 +1,11 @@
 import { Component, OnInit } from '@angular/core';
+import { ActivatedRoute } from '@angular/router';
+
+import { NavController, ModalController } from '@ionic/angular';
+
+import { PlacesService } from '../../places.service';
+import { Place } from '../../places.model';
+import { CreateBookingComponent } from '../../../bookings/create-booking/create-booking.component';
 
 @Component({
   selector: 'app-place-detail',
@@ -6,10 +13,43 @@ import { Component, OnInit } from '@angular/core';
   styleUrls: ['./place-detail.page.scss'],
 })
 export class PlaceDetailPage implements OnInit {
+  place: Place;
 
-  constructor() { }
+  constructor(private navCtrl: NavController,
+    private activatedRoute: ActivatedRoute,
+    private placeService: PlacesService,
+    private modalCtrl: ModalController) { }
 
   ngOnInit() {
+    this.activatedRoute.paramMap.subscribe(paramMap => {
+      if (!paramMap.has('placeId')) {
+        this.navCtrl.navigateBack(`/places/tabs/discover`);
+        return;
+      }
+      this.place = this.placeService.getPlace(paramMap.get('placeId'));
+    });
+  }
+
+  onBookPlaceHandler() {
+    // this.router.navigateByUrl('/places/tabs/discover');
+    // this.navCtrl.navigateBack('/places/tabs/discover');
+    this.modalCtrl.create({
+      component: CreateBookingComponent,
+      componentProps: { selectedPlace: this.place }
+    }).then(modalEl => {
+      modalEl.present();
+      return modalEl.onDidDismiss();
+    }).
+      then((resultData) => {
+        console.log(resultData.data, resultData.role)
+        if(resultData.role === 'confirm'){
+            console.log('BOOKED !!!!');
+        }
+
+        if (resultData.role === 'cancel') {
+
+        }
+      });
   }
 
 }
