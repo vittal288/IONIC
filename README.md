@@ -5,3 +5,6 @@ Hybrid Mobile Application Development
 ```
 ionic start myApp tabs
 ```
+
+ionic build andriod 
+ionic capacitor run andriod 
