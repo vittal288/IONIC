@@ -1,24 +1,33 @@
-import { Component, OnInit } from '@angular/core';
+import { Component, OnInit, OnDestroy } from '@angular/core';
 import { MenuController } from '@ionic/angular';
 import { SegmentChangeEventDetail } from '@ionic/core';
+import { Subscription } from 'rxjs';
 
 import { PlacesService } from '../places.service';
 import { Place } from '../places.model';
+import { AuthService } from '../../auth/auth.service';
 
 @Component({
   selector: 'app-discover',
   templateUrl: './discover.page.html',
   styleUrls: ['./discover.page.scss'],
 })
-export class DiscoverPage implements OnInit {
+export class DiscoverPage implements OnInit, OnDestroy {
   loadedPlaces: Place[];
+  relevantPlaces: Place[];
   listedLoadedPlaces: Place[];
+  private placeSub: Subscription;
+
   constructor(private placesService: PlacesService,
-    private menuCtrl: MenuController) { }
+              private menuCtrl: MenuController,
+              private readonly authService : AuthService) { }
 
   ngOnInit() {
-    this.loadedPlaces = this.placesService.places;
-    this.listedLoadedPlaces = this.loadedPlaces.slice(1);
+    this.placeSub = this.placesService.places.subscribe((places) => {
+      this.loadedPlaces = places;
+      this.relevantPlaces = this.loadedPlaces;
+      this.listedLoadedPlaces = this.relevantPlaces.slice(1);
+    });
   }
 
   // onMenuOpen(){
@@ -26,7 +35,23 @@ export class DiscoverPage implements OnInit {
   // }
 
   onFilterUpdate(event: CustomEvent<SegmentChangeEventDetail>) {
-      console.log('Event', event.detail);
+    console.log('Event', event.detail);
+    if (event.detail.value === 'all') {
+      this.relevantPlaces = this.loadedPlaces;
+      this.listedLoadedPlaces = this.relevantPlaces.slice(1);
+    } else {
+      // load the place except which the same user is created 
+      this.relevantPlaces = this.loadedPlaces.filter(place => place.userId !== this.authService.userId);
+      console.log('data--->', this.relevantPlaces);
+      this.listedLoadedPlaces = this.relevantPlaces.slice(1);
+
+    }
+  }
+
+  ngOnDestroy() {
+    if (this.placeSub) {
+      this.placeSub.unsubscribe();
+    }
   }
 
 }
