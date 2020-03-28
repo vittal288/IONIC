@@ -16,7 +16,7 @@
         <ion-col size-sm="6" offset-sm="3">
           <ion-item>
             <ion-label position="floating">First Name</ion-label>
-            <ion-input type="text" ngModel="first-name" name="first-name" required></ion-input>
+            <ion-input type="text" ngModel name="first-name" required></ion-input>
           </ion-item>
         </ion-col>
       </ion-row>
@@ -24,7 +24,7 @@
         <ion-col size-sm="6" offset-sm="3">
           <ion-item>
             <ion-label position="floating">Last Name</ion-label>
-            <ion-input type="text" ngModel="last-name" name="last-name" required></ion-input>
+            <ion-input type="text" ngModel name="last-name" required></ion-input>
           </ion-item>
         </ion-col>
       </ion-row>
@@ -47,8 +47,8 @@
             <ion-datetime 
               display-format="MMM DD YYYY" 
               picker-format="YYYY MMM DD"
-              [min]="selectedPlace.availableFrom.toISOString()"
-              [max]="selectedPlace.availableTo.toISOString()"
+              [min]="availableFrom.toISOString()"
+              [max]="availableTo.toISOString()"
               [ngModel]="startDate"
               name="date-from"
               required
@@ -62,7 +62,7 @@
               display-format="MMM DD YYYY" 
               picker-format="YYYY MMM DD"
               [min]="startDateCtrl.value"
-              [max]="selectedPlace.availableTo.toISOString()"
+              [max]="availableTo.toISOString()"
               [ngModel]="endDate"
               name="date-to"
               required></ion-datetime>

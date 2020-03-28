@@ -15,20 +15,23 @@ export class CreateBookingComponent implements OnInit {
   @Input() selectedMode: 'select' | 'random';
   startDate: string;
   endDate: string;
+  availableFrom;
+  availableTo;
   constructor(private modalCtrl: ModalController) { }
 
   ngOnInit() {
-    const availableFrom = new Date(this.selectedPlace.availableFrom);
-    const availableTo = new Date(this.selectedPlace.availableTo);
+    console.log('SELECTED PLACE', this.selectedPlace);
+    this.availableFrom = new Date(this.selectedPlace.availableFrom);
+    this.availableTo = new Date(this.selectedPlace.availableTo);
 
     if (this.selectedMode === 'random') {
       // generating starting date for the random period 
       // deduct 1 week in terms of mili seconds
-      this.startDate = new Date(availableFrom.getTime()
+      this.startDate = new Date(this.availableFrom.getTime()
         + Math.random()
-        * (availableFrom.getTime()
+        * (this.availableFrom.getTime()
           - 7 * 24 * 60 * 60 * 1000
-          - availableFrom.getTime())).toISOString();
+          - this.availableFrom.getTime())).toISOString();
 
       this.endDate = new Date(new Date(this.startDate).getTime() +
         Math.random() * (new Date(this.startDate).getTime()

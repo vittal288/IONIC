@@ -14,9 +14,12 @@ import { Booking } from './booking.model';
 export class BookingsPage implements OnInit, OnDestroy {
   loadedBookings: Booking[] = [];
   bookingSub: Subscription;
+  isLoading = false;
 
   constructor(private bookingService: BookingService,
-    private readonly loadingCtrl: LoadingController) { }
+    private readonly loadingCtrl: LoadingController) {
+    // 
+  }
 
   ngOnInit() {
     this.loadingCtrl.create({
@@ -30,10 +33,17 @@ export class BookingsPage implements OnInit, OnDestroy {
     });
   }
 
+  ionViewWillEnter() {
+    this.isLoading = true;
+    this.bookingService.fetchBookings().subscribe(() => {
+      this.isLoading = false;
+    });
+  }
+
   onItemCancel(bookingId: string, slidingItem: IonItemSliding) {
     slidingItem.close();
     this.loadingCtrl.create({
-      message: 'Cancelling...'
+      message: 'Deleting...'
     }).then((loadingEl) => {
       loadingEl.present();
       this.bookingService.cancelBooking(bookingId).subscribe(() => {

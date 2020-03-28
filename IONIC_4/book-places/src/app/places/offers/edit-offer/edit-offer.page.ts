@@ -1,6 +1,6 @@
 import { Component, OnInit, OnDestroy } from '@angular/core';
 import { ActivatedRoute, Router } from '@angular/router';
-import { NavController, LoadingController } from '@ionic/angular';
+import { NavController, LoadingController, AlertController } from '@ionic/angular';
 import { Subscription, of } from 'rxjs';
 
 import { PlacesService } from '../../places.service';
@@ -13,13 +13,16 @@ import { FormGroup, FormControl, Validators } from '@angular/forms';
 })
 export class EditOfferPage implements OnInit, OnDestroy {
   place: Place;
+  placeId: string;
   placeSub: Subscription;
   newOfferEditForm: FormGroup;
+  isLoading = false;
   constructor(private activatedRoute: ActivatedRoute,
-              private placeService: PlacesService,
-              private navCtrl: NavController,
-              private readonly loadingCtrl: LoadingController,
-              private readonly router: Router) { }
+    private placeService: PlacesService,
+    private navCtrl: NavController,
+    private readonly loadingCtrl: LoadingController,
+    private readonly router: Router,
+    private readonly alertCtrl: AlertController) { }
 
   ngOnInit() {
     this.activatedRoute.paramMap.subscribe(paramMap => {
@@ -27,8 +30,10 @@ export class EditOfferPage implements OnInit, OnDestroy {
         this.navCtrl.navigateBack(`/places/tabs/offers`);
         return;
       }
+      this.placeId = paramMap.get('placeId');
+      this.isLoading = true;
       this.placeSub = this.placeService.getPlace(paramMap.get('placeId')).subscribe((place) => {
-        this.place = place;
+        this.place = { ...place, id: paramMap.get('placeId') };
         this.newOfferEditForm = new FormGroup({
           title: new FormControl(this.place.title, {
             updateOn: 'blur',
@@ -39,6 +44,22 @@ export class EditOfferPage implements OnInit, OnDestroy {
             validators: [Validators.required, Validators.maxLength(180)]
           })
         });
+        this.isLoading = false;
+      }, (err) => {
+        this.alertCtrl.create({
+          header: 'ERROR',
+          message: 'Place could not fetched, Please try again later',
+          buttons: [
+            {
+              text: ' Okay',
+              handler: () => {
+                this.router.navigate(['/places/tabs/offers']);
+              }
+            }
+          ]
+        }).then((alertEl)=>{
+            alertEl.present();
+        });
       });
     });
   }
@@ -47,7 +68,7 @@ export class EditOfferPage implements OnInit, OnDestroy {
     if (!this.newOfferEditForm.valid) {
       return;
     }
-    console.log('creting offer page', this.newOfferEditForm);
+    console.log('creting offer page', this.newOfferEditForm.value);
     this.loadingCtrl.create({
       message: 'Updating place...'
     }).then((el) => {

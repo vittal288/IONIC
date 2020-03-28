@@ -10,5 +10,6 @@ export class OfferItemComponent implements OnInit {
   @Input() offer: Place;
   constructor() { }
 
-  ngOnInit() {}
+  ngOnInit() {
+  }
 }

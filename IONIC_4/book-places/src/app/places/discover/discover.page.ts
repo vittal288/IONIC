@@ -17,6 +17,7 @@ export class DiscoverPage implements OnInit, OnDestroy {
   relevantPlaces: Place[];
   listedLoadedPlaces: Place[];
   private placeSub: Subscription;
+  isLoading = false;
 
   constructor(private placesService: PlacesService,
               private menuCtrl: MenuController,
@@ -27,6 +28,13 @@ export class DiscoverPage implements OnInit, OnDestroy {
       this.loadedPlaces = places;
       this.relevantPlaces = this.loadedPlaces;
       this.listedLoadedPlaces = this.relevantPlaces.slice(1);
+    });
+  }
+
+  ionViewWillEnter() {
+    this.isLoading = true;
+    this.placesService.fetchPlaces().subscribe(() =>{
+      this.isLoading = false;
     });
   }
 
@@ -42,7 +50,6 @@ export class DiscoverPage implements OnInit, OnDestroy {
     } else {
       // load the place except which the same user is created 
       this.relevantPlaces = this.loadedPlaces.filter(place => place.userId !== this.authService.userId);
-      console.log('data--->', this.relevantPlaces);
       this.listedLoadedPlaces = this.relevantPlaces.slice(1);
 
     }
