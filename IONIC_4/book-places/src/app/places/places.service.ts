@@ -1,10 +1,11 @@
 import { Injectable } from '@angular/core';
 import { HttpClient } from '@angular/common/http'
+import { take, map, tap, switchMap } from 'rxjs/operators';
+import { BehaviorSubject, of } from 'rxjs';
 
 import { Place } from './places.model';
 import { AuthService } from '../auth/auth.service';
-import { BehaviorSubject, of } from 'rxjs';
-import { take, map, tap, delay, switchMap } from 'rxjs/operators';
+import { PlaceLocation } from './location.model';
 
 interface PlaceDataModel {
   availableFrom: string;
@@ -14,6 +15,7 @@ interface PlaceDataModel {
   price: number;
   title: string;
   userId: string;
+  location: PlaceLocation;
 }
 
 @Injectable({
@@ -31,7 +33,12 @@ export class PlacesService {
     return this._places.asObservable();
   }
 
-  addPlace(title: string, description: string, price: number, dateFrom: Date, dateTo: Date) {
+  addPlace(title: string,
+           description: string,
+           price: number,
+           dateFrom: Date,
+           dateTo: Date,
+           location: PlaceLocation) {
     let generatedId: string;
     const newPlace = new Place(
       Math.random().toString(),
@@ -41,7 +48,8 @@ export class PlacesService {
       price,
       dateFrom,
       dateTo,
-      this.authService.userId
+      this.authService.userId,
+      location
     );
 
     return this.http.post<{ name: string }>(`${this.fireBaseURL}.json`, { ...newPlace, id: null })
@@ -85,7 +93,8 @@ export class PlacesService {
           oldPlace.price,
           new Date(oldPlace.availableFrom),
           new Date(oldPlace.availableTo),
-          oldPlace.userId
+          oldPlace.userId,
+          oldPlace.location
         );
         return this.http.put(`${this.fireBaseURL}/${placeId}.json`, { ...updatedPlaces[index], id: null });
       }),
@@ -112,7 +121,8 @@ export class PlacesService {
                 resData[key].price,
                 new Date(resData[key].availableFrom),
                 new Date(resData[key].availableTo),
-                resData[key].userId
+                resData[key].userId,
+                resData[key].location
               )
             );
           }
@@ -140,7 +150,9 @@ export class PlacesService {
             resData.price,
             new Date(resData.availableFrom),
             new Date(resData.availableTo),
-            resData.userId);
+            resData.userId,
+            resData.location
+            );
         })
       );
   }

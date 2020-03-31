@@ -9,6 +9,7 @@ import { Place } from '../../places.model';
 import { CreateBookingComponent } from '../../../bookings/create-booking/create-booking.component';
 import { BookingService } from '../../../bookings/booking.service';
 import { AuthService } from '../../../auth/auth.service';
+import { MapModalComponent } from '../../../shared/pickers/map-modal/map-modal.component';
 
 @Component({
   selector: 'app-place-detail',
@@ -46,7 +47,7 @@ export class PlaceDetailPage implements OnInit, OnDestroy {
       this.placeSub = this.placeService
         .getPlace(paramMap.get('placeId'))
         .subscribe((place) => {
-          this.place = {...place, id: paramMap.get('placeId')};
+          this.place = { ...place, id: paramMap.get('placeId') };
           this.isBookable = place.userId !== this.authService.userId;
           this.isLoading = false;
         }, error => {
@@ -127,6 +128,24 @@ export class PlaceDetailPage implements OnInit, OnDestroy {
 
         }
       });
+  }
+
+  onOpenMapLocation() {
+    this.modalCtrl.create({
+      component: MapModalComponent,
+      componentProps :{
+        center : {
+          lat : this.place.location.lat,
+          lng : this.place.location.lng
+        },
+        selectable : false,
+        closeButtonText : 'Close',
+        title : this.place.location.address
+
+      }
+    }).then((modalEl) => {
+      modalEl.present();
+    })
   }
 
   ngOnDestroy() {

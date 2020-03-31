@@ -4,6 +4,7 @@ import { Router } from '@angular/router';
 import { LoadingController } from '@ionic/angular';
 
 import { PlacesService } from '../../places.service';
+import { PlaceLocation } from '../../location.model';
 
 @Component({
   selector: 'app-new-offer',
@@ -13,11 +14,11 @@ import { PlacesService } from '../../places.service';
 export class NewOfferPage implements OnInit {
   offerForm: FormGroup;
   constructor(private placeService: PlacesService,
-    private router: Router,
-    private readonly loadingCtrl: LoadingController) {
+              private router: Router,
+              private readonly loadingCtrl: LoadingController) {
 
   }
-
+  
   ngOnInit() {
     this.offerForm = new FormGroup({
       title: new FormControl(null, {
@@ -39,7 +40,16 @@ export class NewOfferPage implements OnInit {
       dateTo: new FormControl(null, {
         updateOn: 'blur',
         validators: [Validators.required]
+      }),
+      location: new FormControl(null, {
+        validators :[ Validators.required ]
       })
+    });
+  }
+
+  onLocationPicked(location: PlaceLocation) {
+    this.offerForm.patchValue({
+      location
     });
   }
 
@@ -57,7 +67,8 @@ export class NewOfferPage implements OnInit {
         this.offerForm.value.description,
         +this.offerForm.value.price,
         new Date(this.offerForm.value.dateFrom),
-        new Date(this.offerForm.value.dateTo)).subscribe(() => {
+        new Date(this.offerForm.value.dateTo),
+        this.offerForm.value.location).subscribe(() => {
           loadingEl.dismiss();
           this.offerForm.reset();
           this.router.navigate(['/places/tabs/offers']);

@@ -12,7 +12,8 @@ import { FormGroup, FormControl, Validators } from '@angular/forms';
   styleUrls: ['./edit-offer.page.scss'],
 })
 export class EditOfferPage implements OnInit, OnDestroy {
-  place: Place;
+  // place: Place;
+  place: any;
   placeId: string;
   placeSub: Subscription;
   newOfferEditForm: FormGroup;
