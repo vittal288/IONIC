@@ -5,7 +5,7 @@
     </ion-buttons>
     <ion-title>Add Offer</ion-title>
     <ion-buttons slot="primary">
-      <ion-button (click)="onCreateOffer()"  [disabled]="!offerForm.valid">
+      <ion-button (click)="onCreateOffer()"  [disabled]="!offerForm.valid || !offerForm.get('image').value">
         <ion-icon name="checkmark" slot="icon-only"></ion-icon>
       </ion-button>
     </ion-buttons>
@@ -73,9 +73,20 @@
         </ion-col>
       </ion-row>
       <ion-row>
-        <ion-col size-sm="3" offset-sm="3">
+        <ion-col size-sm="6" offset-sm="3">
           <!-- YOU CAN USE NPM COMPONENT https://angular-maps.com/-->
-          <app-location-picker (locationPick)="onLocationPicked($event)"></app-location-picker>
+          <app-location-picker 
+            [showPreview] ="offerForm.get('location').value"
+            (locationPick)="onLocationPicked($event)">
+          </app-location-picker>
+        </ion-col>
+      </ion-row>
+      <ion-row>
+        <ion-col size-sm="6" offset-sm="3">
+          <app-image-picker 
+            [showPreview] ="offerForm.get('image').value"
+            (imagePick)="onImagePicked($event)">
+          </app-image-picker>
         </ion-col>
       </ion-row>
     </ion-grid>

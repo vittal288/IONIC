@@ -9,7 +9,7 @@ import { Place } from '../../places.model';
 import { CreateBookingComponent } from '../../../bookings/create-booking/create-booking.component';
 import { BookingService } from '../../../bookings/booking.service';
 import { AuthService } from '../../../auth/auth.service';
-import { MapModalComponent } from '../../../shared/pickers/map-modal/map-modal.component';
+import { MapModalComponent } from '../../../shared/map-modal/map-modal.component';
 
 @Component({
   selector: 'app-place-detail',

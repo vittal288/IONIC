@@ -1,5 +1,5 @@
 import { Component, OnInit, AfterViewInit, ViewChild, ElementRef, Renderer2, OnDestroy, Input } from '@angular/core';
-import { SharedService } from '../../service/shared.service';
+import { SharedService } from '../service/shared.service';
 
 import { ModalController } from '@ionic/angular';
 

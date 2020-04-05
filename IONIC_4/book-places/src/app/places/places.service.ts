@@ -33,18 +33,29 @@ export class PlacesService {
     return this._places.asObservable();
   }
 
-  addPlace(title: string,
-           description: string,
-           price: number,
-           dateFrom: Date,
-           dateTo: Date,
-           location: PlaceLocation) {
+
+  uploadImage(image: File) {
+    // formData is JS object, which we can use for to merge different kind of data like file and text and send to http request 
+    const uploadData = new FormData();
+    uploadData.append('image', image);
+
+    const fireBaseImageUploadURL = 'https://us-central1-ionic-angular-f34a9.cloudfunctions.net/storeImage';
+    return this.http.post<{ imageUrl: string, imagePath: string }>(fireBaseImageUploadURL, uploadData);
+  }
+
+  addPlace( title: string,
+            description: string,
+            price: number,
+            dateFrom: Date,
+            dateTo: Date,
+            location: PlaceLocation,
+            imageUrl: string) {
     let generatedId: string;
     const newPlace = new Place(
       Math.random().toString(),
       title,
       description,
-      'https://picsum.photos/id/536/354/354',
+      imageUrl,
       price,
       dateFrom,
       dateTo,
@@ -152,7 +163,7 @@ export class PlacesService {
             new Date(resData.availableTo),
             resData.userId,
             resData.location
-            );
+          );
         })
       );
   }
