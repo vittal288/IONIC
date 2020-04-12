@@ -37,3 +37,4 @@ UserInterfaceState.xcuserstate
 **/src/environments/environment.prod.ts
 **/src/environments/environment.ts
 functions/firebase-cred
+.firebase
