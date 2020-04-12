@@ -7,6 +7,7 @@
 //  response.send("Hello from Firebase!");
 // });
 
+// NOTE : whenever this file updated, please deploy this file to server using "firebase deploy" command 
 
 const functions = require('firebase-functions');
 const cors = require('cors')({ origin: true });
@@ -17,16 +18,30 @@ const fs = require('fs');
 const uuid = require('uuid/v4');
 
 const { Storage } = require('@google-cloud/storage');
+const fbAdmin = require('firebase-admin');
 
 const storage = new Storage({
   projectId: 'ionic-angular-f34a9'
 });
+
+fbAdmin.initializeApp({
+  credential : fbAdmin.credential.cert(
+    require('./firebase-cred/ionic-app.json')
+  )
+})
 
 exports.storeImage = functions.https.onRequest((req, res) => {
   return cors(req, res, () => {
     if (req.method !== 'POST') {
       return res.status(500).json({ message: 'Not allowed.' });
     }
+
+    if(!req.headers.authorization || !req.headers.authorization.startsWith('Bearer ')){
+      return res.status(401).json({error :'Unauthorized!'})
+    }
+    let idToken;
+    idToken = req.headers.authorization.split('Bearer ')[1];
+
     const busboy = new Busboy({ headers: req.headers });
     let uploadData;
     let oldImagePath;
@@ -48,21 +63,23 @@ exports.storeImage = functions.https.onRequest((req, res) => {
         imagePath = oldImagePath;
       }
 
-      console.log(uploadData.type);
-      return storage
-        .bucket('ionic-angular-f34a9.appspot.com')
-        .upload(uploadData.filePath, {
-          uploadType: 'media',
-          destination: imagePath,
-          metadata: {
+      return fbAdmin.auth().verifyIdToken(idToken).then(decodedToken=>{
+        console.log(uploadData.type);
+        return storage
+          .bucket('ionic-angular-f34a9.appspot.com')
+          .upload(uploadData.filePath, {
+            uploadType: 'media',
+            destination: imagePath,
             metadata: {
-              contentType: uploadData.type,
-              firebaseStorageDownloadTokens: id
+              metadata: {
+                contentType: uploadData.type,
+                firebaseStorageDownloadTokens: id
+              }
             }
-          }
-        })
+          })
+      })
         // login to generate uploaded image path 
-        .then(() => {
+      .then(() => {
           return res.status(201).json({
             imageUrl:
               'https://firebasestorage.googleapis.com/v0/b/' +

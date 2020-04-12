@@ -1,7 +1,7 @@
 import { Injectable } from '@angular/core';
 import { HttpClient } from '@angular/common/http'
 import { take, map, tap, switchMap } from 'rxjs/operators';
-import { BehaviorSubject, of } from 'rxjs';
+import { BehaviorSubject, of, pipe } from 'rxjs';
 
 import { Place } from './places.model';
 import { AuthService } from '../auth/auth.service';
@@ -38,50 +38,79 @@ export class PlacesService {
     // formData is JS object, which we can use for to merge different kind of data like file and text and send to http request 
     const uploadData = new FormData();
     uploadData.append('image', image);
-
-    const fireBaseImageUploadURL = 'https://us-central1-ionic-angular-f34a9.cloudfunctions.net/storeImage';
-    return this.http.post<{ imageUrl: string, imagePath: string }>(fireBaseImageUploadURL, uploadData);
+    return this.authService.token.pipe(take(1), switchMap(token => {
+      const fireBaseImageUploadURL = 'https://us-central1-ionic-angular-f34a9.cloudfunctions.net/storeImage';
+      return this.http.post<{ imageUrl: string, imagePath: string }>(fireBaseImageUploadURL, 
+        uploadData, {
+          headers: {
+            Authorization : 'Bearer ' + token
+          }
+        }
+      );
+    }));
   }
 
-  addPlace( title: string,
-            description: string,
-            price: number,
-            dateFrom: Date,
-            dateTo: Date,
-            location: PlaceLocation,
-            imageUrl: string) {
+  addPlace(title: string,
+           description: string,
+           price: number,
+           dateFrom: Date,
+           dateTo: Date,
+           location: PlaceLocation,
+           imageUrl: string) {
     let generatedId: string;
-    const newPlace = new Place(
-      Math.random().toString(),
-      title,
-      description,
-      imageUrl,
-      price,
-      dateFrom,
-      dateTo,
-      this.authService.userId,
-      location
-    );
-
-    return this.http.post<{ name: string }>(`${this.fireBaseURL}.json`, { ...newPlace, id: null })
-      .pipe(
-        // switchMap operates on existing observable{which is returns from http.post method} and returns new observable 
-        switchMap(resultData => {
-          generatedId = resultData.name;
-          return this.places;
-        }),
-        take(1),
-        // tap is operating on observable which is returns from switchMap
-        tap(places => {
-          newPlace.id = generatedId;
-          this._places.next(places.concat(newPlace));
-        })
-      );
+    let newPlace: Place;
+    let fetchedUserId: string;
+    
+    return this.authService.userId.pipe(
+      take(1),
+      switchMap(userId => {
+        if (!userId) {
+          throw new Error('User id is not found !!');
+        }
+        fetchedUserId = userId;
+        // returning new observable 
+        return this.authService.token;
+      }),
+      take(1),
+      switchMap(token => {
+        if (!token) {
+          throw new Error('User is not valid !!');
+        }
+        newPlace = new Place(
+          Math.random().toString(),
+          title,
+          description,
+          imageUrl,
+          price,
+          dateFrom,
+          dateTo,
+          fetchedUserId,
+          location
+        );
+        return this.http.post<{ name: string }>(
+          `${this.fireBaseURL}.json?auth=${token}`, { ...newPlace, id: null });
+      }), // switchMap operates on existing observable{which is returns from http.post method} and returns new observable 
+    switchMap(resultData => {
+        generatedId = resultData.name;
+        return this.places;
+      }),
+    take(1),
+      // tap is operating on observable which is returns from switchMap
+    tap(places => {
+        newPlace.id = generatedId;
+        this._places.next(places.concat(newPlace));
+      }));
   }
 
   updatePlace(placeId: string, title: string, description: string) {
     let updatedPlaces: Place[];
-    return this.places.pipe(
+    let fetchedToken:string;
+    return this.authService.token.pipe(
+      take(1),
+      switchMap( token => {
+        fetchedToken = token;
+        return this.places;
+      }),
       // take operator take latest snapshot of places array
       take(1),
       // if there are no places on load
@@ -107,7 +136,8 @@ export class PlacesService {
           oldPlace.userId,
           oldPlace.location
         );
-        return this.http.put(`${this.fireBaseURL}/${placeId}.json`, { ...updatedPlaces[index], id: null });
+        return this.http.put(
+            `${this.fireBaseURL}/${placeId}.json?auth=${fetchedToken}`, { ...updatedPlaces[index], id: null });
       }),
       tap(() => {
         this._places.next(updatedPlaces);
@@ -117,7 +147,13 @@ export class PlacesService {
 
   fetchPlaces() {
     // updating get method with generic return type
-    return this.http.get<{ [key: string]: PlaceDataModel }>(`${this.fireBaseURL}.json`).pipe(
+    return this.authService.token.pipe(
+      take(1),
+      switchMap(token => {
+        return this.http.get<{ [key: string]: PlaceDataModel }>(
+          `${this.fireBaseURL}.json?auth=${token}`
+          );
+      }),
       // map operator operates on existing observable data and returns the same observable with restructured response data 
       map(resData => {
         const places = [];
@@ -147,25 +183,26 @@ export class PlacesService {
   }
 
   getPlace(id: string) {
-    // return this.places.pipe(take(1), map((places) => {
-    //   return { ...places.find(place => place.id === id) };
-    // }));
-    return this.http.get<PlaceDataModel>(`${this.fireBaseURL}/${id}.json`)
-      .pipe(
-        tap(resData => {
-          return new Place(
-            id,
-            resData.title,
-            resData.description,
-            resData.imageUrl,
-            resData.price,
-            new Date(resData.availableFrom),
-            new Date(resData.availableTo),
-            resData.userId,
-            resData.location
-          );
-        })
-      );
+    return this.authService.token.pipe(
+      take(1),
+      switchMap( token => {
+        return this.http.get<PlaceDataModel>(`
+          ${this.fireBaseURL}/${id}.json?auth=${token}`);
+      }),
+      map(resData => {
+        return new Place(
+          id,
+          resData.title,
+          resData.description,
+          resData.imageUrl,
+          resData.price,
+          new Date(resData.availableFrom),
+          new Date(resData.availableTo),
+          resData.userId,
+          resData.location
+        );
+      })
+    );
   }
 
 }

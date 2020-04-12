@@ -1,4 +1,4 @@
-import { Component } from '@angular/core';
+import { Component, OnInit, OnDestroy } from '@angular/core';
 import { Router } from '@angular/router';
 
 import { Platform } from '@ionic/angular';
@@ -6,10 +6,12 @@ import { Platform } from '@ionic/angular';
 // import { SplashScreen } from '@ionic-native/splash-screen/ngx';
 // import { StatusBar } from '@ionic-native/status-bar/ngx';
 
-import { Plugins, Capacitor } from '@capacitor/core';
+import { Plugins, Capacitor, AppState } from '@capacitor/core';
 import * as admin from 'firebase-admin';
+import { Subscription } from 'rxjs';
 
 import { AuthService } from './auth/auth.service';
+import { take } from 'rxjs/operators';
 // import serviceAccount from '../../private/ionic-angular-f34a9.json';
 // admin.initializeApp({
 //   credential: admin.credential.cert(JSON.stringify(serviceAccount)),
@@ -20,7 +22,9 @@ import { AuthService } from './auth/auth.service';
   selector: 'app-root',
   templateUrl: 'app.component.html'
 })
-export class AppComponent {
+export class AppComponent implements OnInit, OnDestroy {
+  private authSub: Subscription;
+  private previousAuthState = false;
   content;
   constructor(
     private platform: Platform,
@@ -47,7 +51,38 @@ export class AppComponent {
 
   onLogout() {
     this.authService.logout();
-    this.router.navigateByUrl('/auth');
+  }
+
+  ngOnInit() {
+    // whenever user is changed then redirect to login page
+    this.authSub = this.authService.userIsAuthenticated.subscribe(isAuth => {
+      if (!isAuth && this.previousAuthState !== isAuth) {
+        this.router.navigateByUrl('/auth');
+      }
+      this.previousAuthState = isAuth;
+    });
+
+    Plugins.App.addListener('appStateChange', this.checkAuthOnResume);
+  }
+
+  private checkAuthOnResume(state: AppState) {
+    console.log('APP STATE', state);
+    if (state.isActive) {
+      this.authService
+        .autoLogin()
+        .pipe(take(1))
+        .subscribe(success => {
+          if (!success) {
+            this.onLogout();
+          }
+        });
+    }
+  }
+
+  ngOnDestroy() {
+    if (this.authSub) {
+      this.authSub.unsubscribe();
+    }
   }
 }
 

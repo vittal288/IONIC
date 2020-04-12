@@ -34,5 +34,6 @@ ios
 .DS_Store
 Thumbs.db
 UserInterfaceState.xcuserstate
-environments/
-private/
+**/src/environments/environment.prod.ts
+**/src/environments/environment.ts
+functions/firebase-cred

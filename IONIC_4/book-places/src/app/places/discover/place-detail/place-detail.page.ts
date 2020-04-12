@@ -10,6 +10,7 @@ import { CreateBookingComponent } from '../../../bookings/create-booking/create-
 import { BookingService } from '../../../bookings/booking.service';
 import { AuthService } from '../../../auth/auth.service';
 import { MapModalComponent } from '../../../shared/map-modal/map-modal.component';
+import { take, switchMap } from 'rxjs/operators';
 
 @Component({
   selector: 'app-place-detail',
@@ -44,11 +45,20 @@ export class PlaceDetailPage implements OnInit, OnDestroy {
         return;
       }
       this.isLoading = true;
-      this.placeSub = this.placeService
-        .getPlace(paramMap.get('placeId'))
-        .subscribe((place) => {
+      let fetchedUserId: string;
+      this.placeSub = this.authService.userId
+      .pipe(
+          take(1),
+          switchMap(userId => {
+          if (!userId) {
+            throw new Error('User id Not Found !');
+          }
+          fetchedUserId = userId;
+          return this.placeService.getPlace(paramMap.get('placeId'));
+      })).
+      subscribe((place) => {
           this.place = { ...place, id: paramMap.get('placeId') };
-          this.isBookable = place.userId !== this.authService.userId;
+          this.isBookable = place.userId !== fetchedUserId;
           this.isLoading = false;
         }, error => {
           this.alertCtrl.create({
@@ -62,7 +72,7 @@ export class PlaceDetailPage implements OnInit, OnDestroy {
             }]
           }).then((alertEl) => {
             alertEl.present();
-          })
+          });
         });
     });
   }
@@ -133,14 +143,14 @@ export class PlaceDetailPage implements OnInit, OnDestroy {
   onOpenMapLocation() {
     this.modalCtrl.create({
       component: MapModalComponent,
-      componentProps :{
-        center : {
-          lat : this.place.location.lat,
-          lng : this.place.location.lng
+      componentProps: {
+        center: {
+          lat: this.place.location.lat,
+          lng: this.place.location.lng
         },
-        selectable : false,
-        closeButtonText : 'Close',
-        title : this.place.location.address
+        selectable: false,
+        closeButtonText: 'Close',
+        title: this.place.location.address
 
       }
     }).then((modalEl) => {

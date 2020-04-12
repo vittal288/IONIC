@@ -1,5 +1,5 @@
 import { Component, OnInit, OnDestroy } from '@angular/core';
-import { IonItemSliding, LoadingController } from '@ionic/angular';
+import { IonItemSliding, LoadingController, AlertController } from '@ionic/angular';
 import { Subscription } from 'rxjs';
 
 
@@ -17,7 +17,8 @@ export class BookingsPage implements OnInit, OnDestroy {
   isLoading = false;
 
   constructor(private bookingService: BookingService,
-    private readonly loadingCtrl: LoadingController) {
+    private readonly loadingCtrl: LoadingController,
+    private readonly alertCtrl: AlertController) {
     // 
   }
 
@@ -37,6 +38,16 @@ export class BookingsPage implements OnInit, OnDestroy {
     this.isLoading = true;
     this.bookingService.fetchBookings().subscribe(() => {
       this.isLoading = false;
+    }, error => {
+      this.alertCtrl.create({
+        header: 'Error',
+        message: 'Unable to load bookings, please try after some time',
+        buttons: [{
+          text: 'Okay'
+        }]
+      }).then(alertEL => {
+        alertEL.present();
+      })
     });
   }
 
