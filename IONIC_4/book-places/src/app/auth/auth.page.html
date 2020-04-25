@@ -53,11 +53,16 @@
               [disabled]="!f.valid">{{ isLogin ? 'Login' :'Signup'}}</ion-button>
         </ion-col>
       </ion-row>
+      <ion-row *ngIf="isLogin">
+        <ion-col size-md="6" offset-md="3" text-center>
+          <ion-button 
+          color="primary" 
+          type="button" 
+          fill="clear" 
+          expand="full"
+          (click)="onForgotPassword()">Forgot Password?</ion-button>
+        </ion-col>
+      </ion-row>
     </ion-grid>
- </form>
- 
-  <!-- <div text-center>
-    <ion-spinner color="primary" *ngIf="isLoading"></ion-spinner>
-  </div> -->
-  
+ </form>  
 </ion-content>

@@ -15,9 +15,9 @@ export class AuthPage implements OnInit {
   isLoading = false;
   isLogin = false;
   constructor(private authService: AuthService,
-    private router: Router,
-    private loadingCtrl: LoadingController,
-    private alertCtrl: AlertController) {
+              private router: Router,
+              private loadingCtrl: LoadingController,
+              private alertCtrl: AlertController) {
 
   }
 
@@ -87,6 +87,10 @@ export class AuthPage implements OnInit {
     }).then(alertEl => {
       alertEl.present();
     });
+  }
+
+  onForgotPassword() {
+    this.router.navigate(['/auth/forgot-password']);
   }
 
 }
