@@ -25,11 +25,12 @@ export class AuthService implements OnDestroy {
 
   private fireBaseSignUpURL = 'https://identitytoolkit.googleapis.com/v1/accounts:signUp?key=';
   private fireBaseSignInURL = 'https://identitytoolkit.googleapis.com/v1/accounts:signInWithPassword?key=';
+  private fireBaseResetPasswordURL = 'https://identitytoolkit.googleapis.com/v1/accounts:sendOobCode?key=';
 
   constructor(private readonly http: HttpClient) {
 
   }
-  
+
   get userIsAuthenticated() {
     // !! will covert sting to boolean
     return this._user.asObservable().pipe(
@@ -173,6 +174,12 @@ export class AuthService implements OnDestroy {
     });
   }
 
+  resetPassword(email: string) {
+    return this.http.post(`${this.fireBaseResetPasswordURL}${environment.fireBaseAPIKey}`, {
+      email,
+      requestType : 'PASSWORD_RESET'
+    });
+  }
 
   ngOnDestroy() {
     if (this.activeLogOutTimer) {
