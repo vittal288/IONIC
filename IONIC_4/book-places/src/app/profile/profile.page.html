@@ -47,7 +47,9 @@
     <ion-col size-sm="6" offset-sm="3">
       <ion-item>
         <ion-label >Email Verified</ion-label>
-        <ion-badge slot="end" color="success" *ngIf="profileInfo && profileInfo.userAdditionalInfo && profileInfo.userAdditionalInfo.emailVerified">YES</ion-badge>
+        <div *ngIf="profileInfo && profileInfo.userAdditionalInfo">
+          <ion-badge slot="end" [color]="profileInfo.userAdditionalInfo.emailVerified ? 'success' :'danger'">{{ profileInfo.userAdditionalInfo.emailVerified ? 'YES' :'NO'}}</ion-badge>
+        </div>
         <ion-badge slot="end" color="danger" *ngIf="profileInfo && !profileInfo.userAdditionalInfo">NO</ion-badge>
       </ion-item>
     </ion-col>

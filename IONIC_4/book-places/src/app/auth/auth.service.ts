@@ -26,8 +26,10 @@ export interface AuthResponseData {
 export class AuthService implements OnDestroy {
   private _user = new BehaviorSubject<User>(null);
   private activeLogOutTimer: any;
-  public signedWithOAuthGoogle: boolean;
-  public googleAuthResponse: any;
+  public signedWithOAuth: boolean;
+  private googleAuthResponse: any;
+  private facebookOAuthResponse: any;
+
 
   private fireBaseSignUpURL = 'https://identitytoolkit.googleapis.com/v1/accounts:signUp?key=';
   private fireBaseSignInURL = 'https://identitytoolkit.googleapis.com/v1/accounts:signInWithPassword?key=';
@@ -166,7 +168,7 @@ export class AuthService implements OnDestroy {
     if (this.activeLogOutTimer) {
       clearTimeout(this.activeLogOutTimer);
     }
-    if (this.signedWithOAuthGoogle) {
+    if (this.signedWithOAuth) {
       this.logoutFromOAuth();
     }
     Plugins.Storage.remove({ key: 'authData' }).then(() => {
@@ -185,8 +187,10 @@ export class AuthService implements OnDestroy {
 
   private logoutFromOAuth() {
     firebase.auth().signOut().then(() => {
-      if (this.signedWithOAuthGoogle) {
-         this.signedWithOAuthGoogle = false;
+      if (this.signedWithOAuth) {
+         this.signedWithOAuth = false;
+         this.googleAuthResponse = null;
+         this.facebookOAuthResponse = null;
       }
     }).catch((error) => {
       // An error happened.
@@ -225,6 +229,7 @@ export class AuthService implements OnDestroy {
     const provider = new firebase.auth.GoogleAuthProvider();
     return from(firebase.auth().signInWithPopup(provider)).pipe(
       switchMap((googleResp: any) => {
+        this.signedWithOAuth = true;
         this.googleAuthResponse = googleResp;
         const payload = {
           requestUri: environment.googleProjectInfo.redirectURI,
@@ -235,24 +240,30 @@ export class AuthService implements OnDestroy {
         return this.linkOAuthCredentialToFirebaseDB(payload);
       }),
        // not invoking the handleLoginWithOAuth method, instead just passing the reference of it and passing the global this reference 
-      tap(this.handleLoginWithOAuth.bind(this))
+      tap(this.handleOAuthResponse.bind(this))
     );
   }
+
   loginWithFaceBook() {
-    // const FACEBOOK_ACCESS_TOKEN = 'f286ac9e847744fb5127200a68f8717f';
-    // const FIREBASE_ID_TOKEN = 'eyJhbGciOiJSUzI1NiIsImtpZCI6Ijg4ODQ4YjVhZmYyZDUyMDEzMzFhNTQ3ZDE5MDZlNWFhZGY2NTEzYzgiLCJ0eXAiOiJKV1QifQ.eyJpc3MiOiJodHRwczovL3NlY3VyZXRva2VuLmdvb2dsZS5jb20vaW9uaWMtYW5ndWxhci1mMzRhOSIsImF1ZCI6ImlvbmljLWFuZ3VsYXItZjM0YTkiLCJhdXRoX3RpbWUiOjE1ODgzMzY3NTYsInVzZXJfaWQiOiI5R29WY2dIcW0yZDNYU3loelRDYXU0akdTamwxIiwic3ViIjoiOUdvVmNnSHFtMmQzWFN5aHpUQ2F1NGpHU2psMSIsImlhdCI6MTU4ODMzNjc1NiwiZXhwIjoxNTg4MzQwMzU2LCJlbWFpbCI6InZpdHRhbDI4OEBnbWFpbC5jb20iLCJlbWFpbF92ZXJpZmllZCI6dHJ1ZSwiZmlyZWJhc2UiOnsiaWRlbnRpdGllcyI6eyJlbWFpbCI6WyJ2aXR0YWwyODhAZ21haWwuY29tIl19LCJzaWduX2luX3Byb3ZpZGVyIjoicGFzc3dvcmQifX0.m545r0d3D6RNQTsWBkZCirh5J9XfDZnE0eoifbU2jK-dSqPX8o6MzKAp4jJygeKizZyITnYWZzRLbL4nBLls0htmZVPGlI28RO8o1EBGUY9dCjJDZq6cBKigPRUEXmqKiWfrzPkmsMHN8VNy660M-3RYvJYMYmYeV86LRteboMwYYnqkXI7efw5HO2-cqy6DuyB51UIX8U8-aZwytUCtFeYtToIAhoKwRDvos8rw8CsDPa9y_TW5NSg-BxABpYhnv0nNgJmD-OW6evemRkPIxHj90P45yKlLT-9BF0E0EAKw5uch_Gr6u6I6Z4HMs5XlqnMqIUTHM8qdQMankVnNgA';
-    // // const key = environment.fireBaseAPIKey;
-    // const payload = {
-    //   postBody: `access_token=${FACEBOOK_ACCESS_TOKEN}&providerId=facebook.com`,
-    //   idToken: FIREBASE_ID_TOKEN,
-    //   requestUri: 'http://localhost',
-    //   returnIdpCredential: true,
-    //   returnSecureToken: true
-    // };
-    // return this.http.post(`${this.fireBaseOpenAuthURL}${environment.fireBaseAPIKey}`, payload);
+    const provider = new firebase.auth.FacebookAuthProvider();
+    return from(firebase.auth().signInWithPopup(provider)).pipe(
+      switchMap((faceBookResp: any) => {
+        this.signedWithOAuth = true;
+        this.facebookOAuthResponse = faceBookResp;
+        const payload = {
+          requestUri: environment.googleProjectInfo.redirectURI,
+          postBody: `access_token=${faceBookResp.credential.accessToken}&providerId=${faceBookResp.credential.providerId}`,
+          returnSecureToken: true,
+          returnIdpCredential: true
+        };
+        return this.linkOAuthCredentialToFirebaseDB(payload);
+      }),
+       // not invoking the handleLoginWithOAuth method, instead just passing the reference of it and passing the global this reference 
+      tap(this.handleOAuthResponse.bind(this))
+    );
   }
 
-  handleLoginWithOAuth(fireBaseResp: any) {
+  handleOAuthResponse(fireBaseResp: any) {
     const userData: any = {};
     if (fireBaseResp) {
       userData.email = fireBaseResp.email;
@@ -265,10 +276,18 @@ export class AuthService implements OnDestroy {
     const userAdditionInfo: any = {};
     if (this.googleAuthResponse && this.googleAuthResponse.additionalUserInfo) {
       userAdditionInfo.displayName = this.googleAuthResponse.additionalUserInfo.profile.name;
-      userAdditionInfo.emailVerified = this.googleAuthResponse.additionalUserInfo.profile.verified_email;
+      userAdditionInfo.emailVerified = fireBaseResp.emailVerified;
       userAdditionInfo.firstName = this.googleAuthResponse.additionalUserInfo.profile.given_name;
       userAdditionInfo.lastName = this.googleAuthResponse.additionalUserInfo.profile.family_name;
       userAdditionInfo.profilePicURL = this.googleAuthResponse.additionalUserInfo.profile.picture;
+    }
+
+    if (this.facebookOAuthResponse && this.facebookOAuthResponse.additionalUserInfo) {
+      userAdditionInfo.displayName = this.facebookOAuthResponse.additionalUserInfo.profile.name;
+      userAdditionInfo.emailVerified = fireBaseResp.emailVerified;
+      userAdditionInfo.firstName = this.facebookOAuthResponse.additionalUserInfo.profile.first_name;
+      userAdditionInfo.lastName = this.facebookOAuthResponse.additionalUserInfo.profile.last_name;
+      userAdditionInfo.profilePicURL = this.facebookOAuthResponse.additionalUserInfo.profile.picture.data.url;
     }
 
     // updated user data to device

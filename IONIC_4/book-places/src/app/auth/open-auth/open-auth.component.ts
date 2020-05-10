@@ -38,11 +38,20 @@ export class OpenAuthComponent implements OnInit {
   }
 
   signInWithFaceBook() {
-    // this.authService.loginWithFaceBook().subscribe(resp => {
-    //   console.log('SUCCESS RESP', resp);
-    // }, err => {
-    //   console.log('ERROR', err);
-    // });
+    this.loadingCtrl.create({
+      keyboardClose: true,
+      message: 'Logging In...'
+    }).then(loadingEl => {
+      loadingEl.present();
+      this.authService.loginWithFaceBook().subscribe(resp => {
+        this.router.navigateByUrl('/places/tabs/discover');
+        loadingEl.dismiss();
+      }, errorResp => {
+        loadingEl.dismiss();
+        console.log('Facebook Sign In Error-->', errorResp);
+        this.helperService.showAlert('Error', 'Something went wrong, please try again');
+      });
+    });
   }
 
 }
