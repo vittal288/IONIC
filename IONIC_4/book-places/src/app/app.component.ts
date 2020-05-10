@@ -1,22 +1,15 @@
 import { Component, OnInit, OnDestroy } from '@angular/core';
 import { Router } from '@angular/router';
-
 import { Platform } from '@ionic/angular';
-// these two API are rendering from Cordova , but here we are using CAPACITOR, so commenting below lines and injecting cordova APIs
-// import { SplashScreen } from '@ionic-native/splash-screen/ngx';
-// import { StatusBar } from '@ionic-native/status-bar/ngx';
-
 import { Plugins, Capacitor, AppState } from '@capacitor/core';
-import * as admin from 'firebase-admin';
+import * as firebase from 'firebase';
 import { Subscription } from 'rxjs';
+import { take } from 'rxjs/operators';
 
 import { AuthService } from './auth/auth.service';
-import { take } from 'rxjs/operators';
-// import serviceAccount from '../../private/ionic-angular-f34a9.json';
-// admin.initializeApp({
-//   credential: admin.credential.cert(JSON.stringify(serviceAccount)),
-//   databaseURL: 'https://ionic-angular-f34a9.firebaseio.com'
-// });
+import { environment} from '../environments/environment';
+import { User } from './auth/user.model';
+
 
 @Component({
   selector: 'app-root',
@@ -25,12 +18,10 @@ import { take } from 'rxjs/operators';
 export class AppComponent implements OnInit, OnDestroy {
   private authSub: Subscription;
   private previousAuthState = false;
+  userInfo:User;
   content;
   constructor(
     private platform: Platform,
-    // these two API are rendering from Cordova , but here we are using CAPACITOR, so commenting below lines and injecting cordova APIs
-    // private splashScreen: SplashScreen,
-    // private statusBar: StatusBar,
     private authService: AuthService,
     private router: Router
   ) {
@@ -38,10 +29,17 @@ export class AppComponent implements OnInit, OnDestroy {
   }
 
   initializeApp() {
+    // init firebase app
+    firebase.initializeApp({
+      apiKey: environment.firebaseProjectInfo.fireBaseAPIKey,
+      authDomain: environment.firebaseProjectInfo.authDomain,
+      databaseURL: environment.firebaseProjectInfo.databaseURL,
+      projectId: environment.firebaseProjectInfo.projectId,
+      storageBucket: environment.firebaseProjectInfo.storageBucket,
+      messagingSenderId: environment.firebaseProjectInfo.messagingSenderId
+    });
+
     this.platform.ready().then(() => {
-      // these two API are rendering from Cordova , but here we are using CAPACITOR, so commenting below lines and injecting cordova APIs
-      // this.statusBar.styleDefault();
-      // this.splashScreen.hide();
       if (Capacitor.isPluginAvailable('SplashScreen')) {
         Plugins.SplashScreen.hide();
       }
@@ -58,15 +56,18 @@ export class AppComponent implements OnInit, OnDestroy {
     this.authSub = this.authService.userIsAuthenticated.subscribe(isAuth => {
       if (!isAuth && this.previousAuthState !== isAuth) {
         this.router.navigateByUrl('/auth');
+      } else {
+        this.previousAuthState = isAuth;
+        this.authService.userInfo.subscribe(userInfo => {
+          this.userInfo = userInfo;
+        });
       }
-      this.previousAuthState = isAuth;
     });
 
     Plugins.App.addListener('appStateChange', this.checkAuthOnResume);
   }
 
   private checkAuthOnResume(state: AppState) {
-    console.log('APP STATE', state);
     if (state.isActive) {
       this.authService
         .autoLogin()

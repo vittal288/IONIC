@@ -13,15 +13,15 @@ export class SharedService {
 
 
   getGoogleMapSDK(): string {
-    return `${this.googleMapJsSDKUrl}key=${environment.googleMapsAPIKey}`;
+    return `${this.googleMapJsSDKUrl}key=${environment.googleProjectInfo.googleMapsAPIKey}`;
   }
 
   getGeoCodingAPIUrl(lat: number, lng: number): string {
-    return `${this.googleGeoCodingAPI}latlng=${lat},${lng}&key=${environment.googleMapsAPIKey}`;
+    return `${this.googleGeoCodingAPI}latlng=${lat},${lng}&key=${environment.googleProjectInfo.googleMapsAPIKey}`;
   }
 
   getMapImage(lat: number, lng: number, zoom: number): string {
     return `https://maps.googleapis.com/maps/api/staticmap?center=${lat},${lng}&zoom=${zoom}&size=500x300&maptype=roadmap
-    &markers=color:red%7Clabel:Place%7C${lat},${lng}&key=${environment.googleMapsAPIKey}`;
+    &markers=color:red%7Clabel:Place%7C${lat},${lng}&key=${environment.googleProjectInfo.googleMapsAPIKey}`;
   }
 }
