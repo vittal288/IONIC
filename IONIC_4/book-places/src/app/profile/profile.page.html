@@ -1,0 +1,58 @@
+<ion-header>
+  <ion-toolbar>
+    <ion-buttons slot="start">
+      <ion-menu-button menu="m1"></ion-menu-button>
+    </ion-buttons>
+    <ion-title>Profile</ion-title>
+  </ion-toolbar>
+</ion-header>
+
+<ion-content>
+<ion-grid  no-padding>
+  <ion-row>
+    <ion-col size-sm="6" offset-sm="3" no-padding *ngIf="profileInfo && profileInfo.userAdditionalInfo && profileInfo.userAdditionalInfo.profilePicURL; else noProfilePic">
+      <ion-img [src]="profileInfo.userAdditionalInfo.profilePicURL"></ion-img>
+    </ion-col>
+    <ng-template #noProfilePic>
+      <ion-col size-sm="6" offset-sm="3" no-padding>
+        <img src="../assets/icons/avatar.svg" alt="Profile Picture">
+      </ion-col>
+    </ng-template>
+  </ion-row>
+  <ion-row>
+    <ion-col size-sm="6" offset-sm="3">
+      <ion-item *ngIf="profileInfo && profileInfo.userAdditionalInfo && profileInfo.userAdditionalInfo.firstName">
+        <ion-label position="floating" color="primary">First Name</ion-label>
+        <ion-input type="text" [disabled]=true [value]="profileInfo.userAdditionalInfo.firstName"></ion-input>
+      </ion-item>
+    </ion-col>
+  </ion-row>
+  <ion-row>
+    <ion-col size-sm="6" offset-sm="3">
+      <ion-item *ngIf="profileInfo && profileInfo.userAdditionalInfo && profileInfo.userAdditionalInfo.lastName"> 
+        <ion-label position="floating" color="primary">Last Name</ion-label>
+        <ion-input type="text" [disabled]=true [value]="profileInfo.userAdditionalInfo.lastName"></ion-input>
+      </ion-item>
+    </ion-col>
+  </ion-row>
+  <ion-row>
+    <ion-col size-sm="6" offset-sm="3">
+      <ion-item *ngIf="profileInfo && profileInfo.email">
+        <ion-label position="floating" color="primary">Email</ion-label>
+        <ion-input type="text" [disabled]=true [value]="profileInfo.email"></ion-input>
+      </ion-item>
+    </ion-col>
+  </ion-row>
+  <ion-row>
+    <ion-col size-sm="6" offset-sm="3">
+      <ion-item>
+        <ion-label >Email Verified</ion-label>
+        <div *ngIf="profileInfo && profileInfo.userAdditionalInfo">
+          <ion-badge slot="end" [color]="profileInfo.userAdditionalInfo.emailVerified ? 'success' :'danger'">{{ profileInfo.userAdditionalInfo.emailVerified ? 'YES' :'NO'}}</ion-badge>
+        </div>
+        <ion-badge slot="end" color="danger" *ngIf="profileInfo && !profileInfo.userAdditionalInfo">NO</ion-badge>
+      </ion-item>
+    </ion-col>
+  </ion-row>
+</ion-grid>
+</ion-content>

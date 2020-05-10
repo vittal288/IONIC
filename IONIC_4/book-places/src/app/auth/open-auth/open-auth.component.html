@@ -1,0 +1,20 @@
+<ion-content>
+  <!-- fab placed in the center of the content with a list on each side -->
+  <ion-fab vertical="top" horizontal="center" slot="fixed" style="top:-200px">
+    <ion-fab-button>
+      <ion-icon name="share"></ion-icon>
+    </ion-fab-button>
+    <ion-fab-list side="top">
+      <ion-fab-button (click)="signInWithGoogle()"><ion-icon name="logo-google"></ion-icon></ion-fab-button>
+    </ion-fab-list>
+    <ion-fab-list side="bottom">
+      <ion-fab-button (click)="signInWithFaceBook()"><ion-icon name="logo-facebook"></ion-icon></ion-fab-button>
+    </ion-fab-list>
+    <!-- <ion-fab-list side="start">
+      <ion-fab-button><ion-icon name="logo-instagram"></ion-icon></ion-fab-button>
+    </ion-fab-list>
+    <ion-fab-list side="end">
+      <ion-fab-button><ion-icon name="logo-twitter"></ion-icon></ion-fab-button>
+    </ion-fab-list> -->
+  </ion-fab>
+</ion-content>

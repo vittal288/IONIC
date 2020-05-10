@@ -1,8 +1,11 @@
+import { UserAdditionalInfo } from './user-addotional-info.model';
+
 export class User {
     constructor(public id: string,
                 public email: string,
                 private _token: string,
-                private _tokenExpirationDate: Date) {
+                private _tokenExpirationDate: Date,
+                public userAdditionalInfo?: UserAdditionalInfo) {
 
     }
 

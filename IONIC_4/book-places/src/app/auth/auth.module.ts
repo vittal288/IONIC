@@ -6,6 +6,7 @@ import { IonicModule } from '@ionic/angular';
 import { AuthPage } from './auth.page';
 import { AuthRoutingModule } from './auth-routing.module';
 import { ForgotPasswordPage } from './forgot-password/forgot-password.page';
+import { OpenAuthComponent } from './open-auth/open-auth.component';
 
 @NgModule({
   imports: [
@@ -14,6 +15,6 @@ import { ForgotPasswordPage } from './forgot-password/forgot-password.page';
     IonicModule,
     AuthRoutingModule
   ],
-  declarations: [AuthPage, ForgotPasswordPage]
+  declarations: [AuthPage, ForgotPasswordPage, OpenAuthComponent],
 })
 export class AuthPageModule {}
